@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import {Map, TileLayer, Marker} from 'react-leaflet';
 import api from '../../services/api';
+import axios from 'axios';
 
 import './styles.css';
 
@@ -12,19 +13,34 @@ interface Item {
     id: number;
     title: string;
     image_url: string;
+}
 
+interface IBGEUFResponse
+{
+    sigla: string;
 }
 
 const CreatePoint = () => {
 
     const [items, setItems] = useState<Item[]>([]);
+    const [ufs, setUfs] = useState<string[]>([]);
 
     useEffect(() => {
-       api
-        .get('items')
-        .then(response => {
-            setItems(response.data);
-        });
+        api
+            .get('items')
+            .then(response => {
+                setItems(response.data);
+            });
+    }, []);
+
+    useEffect(() => {
+        axios
+            .get<IBGEUFResponse[]>('https://servicodados.ibge.gov.br/api/v1/localidades/estados')
+            .then(res => {
+               const ufInitials = res.data.map(uf => uf.sigla);
+               setUfs(ufInitials);
+            });
+
     }, []);
 
     return (
@@ -95,6 +111,10 @@ const CreatePoint = () => {
                             <label htmlFor="uf">Estado</label>
                             <select name="uf" id="uf">
                                 <option value="0">Selecione um Estado</option>
+                                {ufs.map(uf => (
+                                    <option value={uf}>{uf}</option>
+                                ))}
+                                
                             </select>
                         </div> 
 
